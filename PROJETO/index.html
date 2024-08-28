@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Consumo de Energia</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="image.png">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+    <!-- Menu Hamburguer -->
+    <nav class="navbar">
+        <input class="checkbox" type="checkbox" id="menu-toggle">
+        <label for="menu-toggle" class="menu-icon">&#9776;</label>
+
+        <ul class="menu">
+            <li><a href="#" onclick="alterarComodo('Sala')">Sala</a></li>
+            <li><a href="#" onclick="alterarComodo('Cozinha')">Cozinha</a></li>
+            <li><a href="#" onclick="alterarComodo('Banheiro')">Banheiro</a></li>
+            <li><a href="#" onclick="alterarComodo('Garagem')">Garagem</a></li>
+            <li><a href="#" onclick="alterarComodo('Quarto')">Quarto</a></li>
+        </ul>
+    </nav>
+
+    <h1 id="titulo-comodo">Sala</h1>
+
+    <!-- Usuários -->
+    <div class="item">
+        <label for="usuario">Selecione o Usuário:</label>
+        <select id="usuario">
+            <option value="1">Lavinia Viani</option>
+            <option value="2">Luise Segatto</option>
+            <option value="3">Maria Luiza</option>
+            <option value="4">Miel Velazquez</option>
+            <option value="5">Rafael Tomasetti</option>
+        </select>
+    </div>
+
+    <div class="item">
+        <label for="equipamento">Selecione o Equipamento:</label>
+        <select id="equipamento">
+            <!-- opções preenchidas dinamicamente -->
+        </select>
+    </div>
+
+    <div class="item">
+        <label for="quantidade">Quantidade de Equipamentos:</label>
+        <input type="number" id="quantidade" value="1">
+    </div>
+
+    <div class="item">
+        <label for="horas">Tempo de Uso Diário (em horas):</label>
+        <input type="number" id="horas" value="4">
+    </div>
+
+    <button onclick="calcularConsumo()">Calcular Consumo</button>
+
+    <!-- Exibição do Resultado -->
+    <div class="resultado" id="resultado"></div>
+
+    <!-- Canvas para o gráfico -->
+    <canvas id="graficoCustoMensal" width="400" height="200"></canvas>
+
+    <script>
+        const equipamentosPorComodo = {
+            Sala: [
+                { nome: 'Televisão', potencia: 150 },
+                { nome: 'Ar-Condicionado', potencia: 1000 },
+                { nome: 'Videogame', potencia: 60 },
+                { nome: 'Ventilador', potencia: 150 },
+                { nome: 'Iluminação', potencia: 60 },
+                { nome: 'Aparelho de Som', potencia: 80 }
+            ],
+            Cozinha: [
+                { nome: 'Geladeira', potencia: 250 },
+                { nome: 'Microondas', potencia: 1400 },
+                { nome: 'Exaustor', potencia: 170 },
+                { nome: 'Cafeteira', potencia: 600 },
+                { nome: 'Sanduicheira', potencia: 850 },
+                { nome: 'Forno Elétrico', potencia: 2000 },
+                { nome: 'Iluminação', potencia: 60 },
+                { nome: 'Liquidificador', potencia: 350 }
+            ],
+            Banheiro: [
+                { nome: 'Chuveiro', potencia: 5500 },
+                { nome: 'Iluminação', potencia: 60 },
+                { nome: 'Secador de Cabelo', potencia: 1500 }
+            ],
+            Garagem: [
+                { nome: 'Portão Elétrico', potencia: 180 },
+                { nome: 'Iluminação', potencia: 60 }
+            ],
+            Quarto: [
+                { nome: 'Iluminação', potencia: 60 },
+                { nome: 'Ar-Condicionado', potencia: 1000 },
+                { nome: 'Umidificador', potencia: 30 }
+            ]
+        };
+
+        function alterarComodo(comodo) {
+            document.getElementById('titulo-comodo').textContent = comodo;
+            const selectEquipamento = document.getElementById('equipamento');
+            selectEquipamento.innerHTML = '';
+
+            equipamentosPorComodo[comodo].forEach(equip => {
+                const option = document.createElement('option');
+                option.value = equip.potencia;
+                option.textContent = `${equip.nome} - ${equip.potencia}W`;
+                selectEquipamento.appendChild(option);
+            });
+        }
+
+        function calcularConsumo() {
+            const potencia = parseFloat(document.getElementById('equipamento').value);
+            const quantidade = parseInt(document.getElementById('quantidade').value);
+            const horas = parseFloat(document.getElementById('horas').value);
+
+            if (isNaN(potencia) || isNaN(quantidade) || isNaN(horas)) {
+                document.getElementById('resultado').textContent = "Por favor, preencha todos os campos corretamente.";
+                return;
+            }
+
+            // Cálculo do consumo
+            const consumoDiario = (potencia * quantidade * horas) / 1000;
+            const consumoMensal = consumoDiario * 30;
+
+            // Tarifa das bandeiras
+            const bandeiraVerde = 0.50;
+            const bandeiraAmarela = 0.93;
+            const bandeiraVermelha = 1.50;
+
+            // Cálculo dos custos com base nas bandeiras
+            const custoVerde = consumoMensal * bandeiraVerde;
+            const custoAmarela = consumoMensal * bandeiraAmarela;
+            const custoVermelha = consumoMensal * bandeiraVermelha;
+
+            document.getElementById('resultado').innerHTML = `
+                Consumo Diário: ${consumoDiario.toFixed(2)} kWh | Consumo Mensal: ${consumoMensal.toFixed(2)} kWh<br>
+                Custo Mensal (Verde): R$ ${custoVerde.toFixed(2)}<br>
+                Custo Mensal (Amarela): R$ ${custoAmarela.toFixed(2)}<br>
+                Custo Mensal (Vermelha): R$ ${custoVermelha.toFixed(2)}
+            `;
+
+            // Atualizar gráfico
+            atualizarGrafico(custoVerde, custoAmarela, custoVermelha);
+        }
+
+        function atualizarGrafico(custoVerde, custoAmarela, custoVermelha) {
+            const ctx = document.getElementById('graficoCustoMensal').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Verde', 'Amarela', 'Vermelha'],
+                    datasets: [{
+                        label: 'Custo Mensal (R$)',
+                        data: [custoVerde, custoAmarela, custoVermelha],
+                        backgroundColor: ['#4CAF50', '#FF9800', '#F44336'],
+                        borderColor: ['#388e3c', '#fbc02d', '#c62828'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return `R$ ${value}`;
+                                }
+                            }
+                        }
+                    },
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `R$ ${context.raw.toFixed(2)}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        alterarComodo('Sala');
+    </script>
+
+</body>
+</html>
